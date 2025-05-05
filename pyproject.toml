@@ -11,10 +11,15 @@ dependencies = [
     "numpy (>=2.2.4,<3.0.0)",
     "matplotlib (>=3.10.1,<4.0.0)",
     "scipy (>=1.15.2,<2.0.0)",
-    "pyqt5 (>=5.15.11,<6.0.0)"
+    "pyqt5 (>=5.15.11,<6.0.0)",
+    "debugpy (>=1.8.14,<2.0.0)",
+    "black (>=25.1.0,<26.0.0)"
 ]
 
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = false
