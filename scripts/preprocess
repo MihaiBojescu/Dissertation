@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+
+from common.preprocess.decoder import BaseDecoder
+from preprocess.preprocessor import Preprocessor
+from preprocess.spectrogramTransformer import SpectrogramTransformer
+from preprocess.wavDecoder import WavDecoder
+
+def main():
+    decoders: dict[str, BaseDecoder] = {
+        "wav": WavDecoder()
+    }
+    transformer = SpectrogramTransformer()
+    preprocessor = Preprocessor(
+        decoders=decoders,
+        transformer=transformer
+    )
+
+    preprocessor.run(
+        n_ffts=4096,
+        hop_length=1024
+    )
+
+if __name__ == "__main__":
+    main()
