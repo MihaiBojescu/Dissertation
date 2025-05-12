@@ -13,9 +13,10 @@ dependencies = [
     "scipy (>=1.15.2,<2.0.0)",
     "pyqt5 (>=5.15.11,<6.0.0)",
     "debugpy (>=1.8.14,<2.0.0)",
-    "black (>=25.1.0,<26.0.0)"
+    "black (>=25.1.0,<26.0.0)",
+    "torch (>=2.7.0,<3.0.0)",
+    "torchvision (>=0.22.0,<0.23.0)"
 ]
-
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -23,3 +24,12 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 package-mode = false
+
+[[tool.poetry.source]]
+name = "pytorch-rocm"
+url = "https://download.pytorch.org/whl/rocm6.3"
+priority = "supplemental"
+
+[tool.poetry.dependencies]
+torch = {source = "pytorch-rocm"}
+torchvision = {source = "pytorch-rocm"}
