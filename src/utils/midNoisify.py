@@ -1,20 +1,16 @@
 import random
-from torch import Tensor, rand, zeros
+from torch import Tensor
 from common.utils.noisify import BaseNoisify
 
 
 class MidNoisify(BaseNoisify):
     def __call__(self, x: Tensor) -> Tensor:
-        start = random.randint(a=0, b=x.shape[0])
-        end = random.randint(a=start, b=x.shape[0])
-        result = zeros((self._samples, x.shape[0], x.shape[1]), dtype=x.dtype)
+        start = random.randint(
+            a=0, b=x.shape[0] - int(x.shape[0] * self._max_percentage)
+        )
+        end = random.randint(
+            a=start,
+            b=max(start + int(x.shape[0] * self._max_percentage), x.shape[0]),
+        )
 
-        for i in range(0, self._samples):
-            result[i, :, :] = x
-
-        for i in range(self._samples - 2, -1, -1):
-            result[i, :, start:end] = result[i + 1, :, start:end] + (
-                rand((x.shape[0], end - start), dtype=x.dtype) * 0.1
-            )
-
-        return result
+        return self._noisify(x, start, end)
