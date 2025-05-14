@@ -1,4 +1,6 @@
+import csv
 import os
+import typing as t
 import matplotlib.pyplot as plt
 from preprocess.spectrogramTransformer import SpectrogramTransformer
 from preprocess.wavDecoder import WavDecoder
@@ -33,11 +35,19 @@ class Preprocessor:
         if hop_length is None:
             hop_length = n_ffts // 2
 
-        for raw_file in self.__read_files():
-            decoded_file = self.__decode(raw_file)
-            transformed_file = self.__transform(decoded_file, n_ffts, hop_length)
+        with open(f"{self.__output_path}/dataset.csv", "w", encoding="utf-8") as file:
+            writer = csv.writer(file)
+            self.__init_csv(writer)
 
-            self.__write_file(transformed_file)
+            for raw_file in self.__read_files():
+                decoded_file = self.__decode(raw_file)
+                transformed_file = self.__transform(decoded_file, n_ffts, hop_length)
+
+                files = self.__write_file(transformed_file)
+                self.__update_csv(writer, files)
+
+    def __init_csv(self, writer: t.Any):
+        writer.writerow(("filename", "channel"))
 
     def __read_files(self):
         for file_path in os.listdir(self.__input_path):
@@ -74,10 +84,11 @@ class Preprocessor:
             hop_length=hop_length,
         )
 
-    def __write_file(self, transformed_file: TransformedAudioFile):
-        path_prefix = (
-            f"{self.__output_path}/{transformed_file.name}.{transformed_file.extension}"
-        )
+    def __write_file(
+        self, transformed_file: TransformedAudioFile
+    ) -> list[tuple[str, int]]:
+        files: list[tuple[str, int]] = []
+        file_name_prefix = f"{transformed_file.name}.{transformed_file.extension}"
         plt.switch_backend("TkAgg")
 
         for i, entry in enumerate(transformed_file.data):
@@ -100,6 +111,17 @@ class Preprocessor:
             plt.ylabel("")
 
             plt.savefig(
-                f"{path_prefix}.{i}.png", bbox_inches="tight", pad_inches=0, dpi=10000
+                f"{self.__output_path}/{file_name_prefix}.{i}.png",
+                bbox_inches="tight",
+                pad_inches=0,
+                dpi=1000,
             )
             plt.close()
+
+            files.append((f"{file_name_prefix}.{i}.png", i))
+
+        return files
+
+    def __update_csv(self, writer: t.Any, files: list[tuple[str, int]]):
+        for entry in files:
+            writer.writerow((entry[0], entry[1]))
