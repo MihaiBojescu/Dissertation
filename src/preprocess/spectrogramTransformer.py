@@ -20,7 +20,11 @@ class SpectrogramTransformer(BaseSpectrogramTransformer):
         data: list[TransformedAudioFileChannelData] = []
 
         sft = signal.ShortTimeFFT(
-            win=window, fs=sampling_rate, hop=hop_length, mfft=n_ffts, scale_to="psd"
+            win=window,
+            fs=sampling_rate,
+            hop=hop_length,
+            mfft=n_ffts,
+            scale_to="magnitude",
         )
 
         for channel in range(0, decoded_file.n_channels):
@@ -31,6 +35,7 @@ class SpectrogramTransformer(BaseSpectrogramTransformer):
             )
 
             Sx = sft.stft(x=channel_data)
+            Sx = self.__to_decibels(Sx)
 
             magnitude = np.abs(Sx)
             num_time_bins = magnitude.shape[1]
@@ -55,6 +60,12 @@ class SpectrogramTransformer(BaseSpectrogramTransformer):
             data=data,
         )
 
+
+    def __to_decibels(self, Sx: np.ndarray[tuple[int, ...], np.dtype[np.float32]]):
+        eps = 1e-10
+        Sx_db = 10 * np.log10(Sx + eps)
+        return Sx_db
+
     def decode(
         self,
         transformed_file: TransformedAudioFile,
@@ -66,15 +77,19 @@ class SpectrogramTransformer(BaseSpectrogramTransformer):
         sft = signal.ShortTimeFFT(
             win=window, fs=sampling_rate, hop=hop_length, mfft=n_ffts, scale_to="psd"
         )
+        data = transformed_file.data.copy()
+
+        for channel in data:
+            channel.Sx = self.__from_decibels(channel.Sx)
 
         n_channels = len(transformed_file.data)
         channel_lengths = [
-            sft.istft(channel.Sx).shape[0] for channel in transformed_file.data
+            sft.istft(channel.Sx).shape[0] for channel in data
         ]
         max_length = max(channel_lengths)
         reconstructed = np.zeros((max_length, n_channels), dtype=np.float32)
 
-        for channel_idx, channel_data in enumerate(transformed_file.data):
+        for channel_idx, channel_data in enumerate(data):
             window = np.blackman(channel_data.magnitude.shape[0])
             sft = signal.ShortTimeFFT(
                 win=window,
@@ -84,7 +99,7 @@ class SpectrogramTransformer(BaseSpectrogramTransformer):
                 scale_to="psd",
             )
 
-            reconstructed_channel = sft.istft(channel_data.Sx)
+            reconstructed_channel = sft.istft(self.__from_decibels(channel_data.Sx))
 
             reconstructed_channel = reconstructed_channel / np.max(
                 np.abs(reconstructed_channel)
@@ -101,3 +116,8 @@ class SpectrogramTransformer(BaseSpectrogramTransformer):
             bits_per_sample=transformed_file.bits_per_sample,
             data=reconstructed.tobytes(),
         )
+
+    def __from_decibels(self, Sx_db: np.ndarray[tuple[int, ...], np.dtype[np.float32]]):
+        eps = 1e-10
+        Sx = 10 ** ((Sx_db + eps) / 10)
+        return Sx

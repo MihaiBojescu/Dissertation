@@ -114,7 +114,7 @@ class Preprocessor:
                 f"{self.__output_path}/{file_name_prefix}.{i}.png",
                 bbox_inches="tight",
                 pad_inches=0,
-                dpi=1000,
+                dpi=500,
             )
             plt.close()
 
