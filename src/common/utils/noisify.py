@@ -8,7 +8,7 @@ class BaseNoisify(torch.nn.Module):
         super().__init__()
         self._samples = samples
 
-    def __call__(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x
 
     def _noisify(self, x: torch.Tensor, start: int, end: int) -> torch.Tensor:

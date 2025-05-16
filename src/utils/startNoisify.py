@@ -10,7 +10,7 @@ class StartNoisify(BaseNoisify):
         super().__init__(samples)
         self._max_percentage = max_percentage
 
-    def __call__(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         start = 0
         end = random.randint(a=start, b=int(x.shape[0] * self._max_percentage))
         result = torch.zeros((self._samples, x.shape[0], x.shape[1]), dtype=x.dtype)

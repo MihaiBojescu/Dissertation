@@ -10,7 +10,7 @@ class RandomNoisify(BaseNoisify):
         super().__init__(samples)
         self._index_chance = index_chance
 
-    def __call__(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         picked_indices = [
             i for i in range(x.shape[-1]) if random.uniform(0, 1) > self._index_chance
         ]
