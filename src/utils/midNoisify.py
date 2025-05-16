@@ -1,10 +1,16 @@
 import random
-from torch import Tensor
+import torch
 from common.utils.noisify import BaseNoisify
 
 
 class MidNoisify(BaseNoisify):
-    def __call__(self, x: Tensor) -> Tensor:
+    _max_percentage: float
+
+    def __init__(self, samples: int, max_percentage: float):
+        super().__init__(samples)
+        self._max_percentage = max_percentage
+
+    def __call__(self, x: torch.Tensor) -> torch.Tensor:
         start = random.randint(
             a=0, b=x.shape[0] - int(x.shape[0] * self._max_percentage)
         )
@@ -12,5 +18,12 @@ class MidNoisify(BaseNoisify):
             a=start,
             b=max(start + int(x.shape[0] * self._max_percentage), x.shape[0]),
         )
+        result = torch.zeros((self._samples, x.shape[0], x.shape[1]), dtype=x.dtype)
 
-        return self._noisify(x, start, end)
+        for i in range(0, self._samples):
+            result[i, :, :] = x
+
+        for i in range(self._samples - 2, -1, -1):
+            result[i, :, start:end] = self._noisify(result[i + 1], start, end)
+
+        return result
