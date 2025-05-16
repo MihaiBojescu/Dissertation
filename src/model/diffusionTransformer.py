@@ -6,8 +6,9 @@ from model.transformer import Transformer
 
 
 class DiffusionTransformer(torch.nn.Module):
-    _image_size: int
-    _patch_size: int
+    _image_size: tuple[int, int]
+    _patch_size: tuple[int, int]
+    _tile_size: tuple[int, int]
     _n_channels: int
     _embedding_dims: int
     _depth: int
@@ -20,8 +21,8 @@ class DiffusionTransformer(torch.nn.Module):
 
     def __init__(
         self,
-        image_size: int = 512,
-        patch_size: int = 64,
+        image_size: tuple[int, int] = (64, 64),
+        patch_size: tuple[int, int] = (8, 8),
         n_channels: int = 3,
         embedding_dims: int = 256,
         depth: int = 4,
@@ -30,16 +31,26 @@ class DiffusionTransformer(torch.nn.Module):
         super().__init__()
         self._image_size = image_size
         self._patch_size = patch_size
+        self._tile_size = (
+            self._image_size[0] // self._patch_size[0],
+            self._image_size[1] // self._patch_size[1],
+        )
         self._n_channels = n_channels
         self._embedding_dims = embedding_dims
         self._depth = depth
         self._n_heads = n_heads
 
         assert (
-            self._image_size % self._patch_size == 0
-        ), f"Image size ({self._image_size}) must divide exactly to patch size ({self._patch_size}). Image size ({self._image_size}) % patch size ({self._patch_size}) = {self._image_size % self._patch_size} !== 0"
+            self._image_size[0] % self._patch_size[0] == 0
+            and self._image_size[1] % self._patch_size[1] == 0
+        ), f"Image size ({self._image_size[0]}, {self._image_size[1]}) must divide exactly to patch size ({self._patch_size[0]}, {self._patch_size[1]}). image_size[0] ({self._image_size[0]}) % patch_size[0] ({self._patch_size[0]}) = {self._image_size[0] % self._patch_size[0]}, image_size[1] ({self._image_size[1]}) % patch_size ({self._patch_size[1]}) = {self._image_size[1] % self._patch_size[1]}"
 
-        self._n_patches = (self._image_size // self._patch_size) ** 2
+        self._n_patches = (self._image_size[0] // self._patch_size[0]) * (
+            self._image_size[1] // self._patch_size[1]
+        )
+        self._pos_embedding = torch.nn.Parameter(
+            torch.zeros(1, self._n_patches, self._embedding_dims)
+        )
         self._patch_embedding = PatchEmbedding(
             self._embedding_dims, self._n_channels, self._patch_size
         )
@@ -58,11 +69,15 @@ class DiffusionTransformer(torch.nn.Module):
         batch_size, color_channels, height, width = x.shape
         x_embedding = self._patch_embedding(x)
         x_embedding = x_embedding.flatten(2).transpose(1, 2)
+        x_embedding = x_embedding + self._pos_embedding
 
         t_embedding = self._time_embedding(t)
         x_embedding = x_embedding + t_embedding[:, None, :]
 
         x = self._transformers(x_embedding)
-        x = self._patch_de_embedding(x)
 
-        return x.transpose(1, 2).view(batch_size, color_channels, height, width)
+        x = x.transpose(1, 2).unflatten(2, self._tile_size)
+        x = self._patch_de_embedding(x)
+        x = x.view(batch_size, color_channels, height, width)
+
+        return x

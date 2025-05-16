@@ -4,10 +4,10 @@ import torch
 class PatchEmbedding(torch.nn.Module):
     _dims: int
     _channels: int
-    _patch_size: int
+    _patch_size: tuple[int, int]
     _net: torch.nn.Module
 
-    def __init__(self, dims: int, channels: int, patch_size: int):
+    def __init__(self, dims: int, channels: int, patch_size: tuple[int, int]):
         super().__init__()
         self._dims = dims
         self._channels = channels
