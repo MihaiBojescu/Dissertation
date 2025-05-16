@@ -39,8 +39,6 @@ class ModelTrainer(
                 step = step.to(torch.get_default_device())
                 y = y.to(torch.get_default_device())
 
-                print(x.shape, step.shape, y.shape)
-
                 self._optimiser.zero_grad()
                 y_hat = self._model(x=x, step=step)
                 loss = self._loss_function(y_hat, y)
