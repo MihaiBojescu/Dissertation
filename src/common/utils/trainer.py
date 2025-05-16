@@ -16,7 +16,7 @@ class BaseTrainer(t.Generic[T, U]):
     def eval(
         self,
         dataloader: torch.utils.data.DataLoader[T],
-        callback: t.Callable[[U, float, float, float], None] = lambda y_hat, loss, accuracy, f1_score: None,
+        callback: t.Callable[[U, float], None] = lambda y_hat, loss: None,
     ) -> None:
         pass
 
