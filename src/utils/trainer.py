@@ -1,7 +1,6 @@
 import typing as t
 import torch
 import tqdm
-from torch.optim import AdamW
 from common.utils.trainer import BaseTrainer
 
 
@@ -40,8 +39,10 @@ class ModelTrainer(
                 step = step.to(torch.get_default_device())
                 y = y.to(torch.get_default_device())
 
+                print(x.shape, step.shape, y.shape)
+
                 self._optimiser.zero_grad()
-                y_hat = self._model(x=x, t=t)
+                y_hat = self._model(x=x, step=step)
                 loss = self._loss_function(y_hat, y)
                 loss.backward()
                 self._optimiser.step()
@@ -67,7 +68,7 @@ class ModelTrainer(
             y = y.to(torch.get_default_device())
 
             self._optimiser.zero_grad()
-            y_hat = self._model(x=x, t=t)
+            y_hat = self._model(x=x, step=step)
             loss = y_hat.loss
 
             callback(y_hat, loss.item())

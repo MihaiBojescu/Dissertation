@@ -65,13 +65,14 @@ class DiffusionTransformer(torch.nn.Module):
             self._embedding_dims, self._n_channels, self._patch_size
         )
 
-    def forward(self, x: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, step: torch.Tensor) -> torch.Tensor:
+        print(x.shape)
         batch_size, color_channels, height, width = x.shape
         x_embedding = self._patch_embedding(x)
         x_embedding = x_embedding.flatten(2).transpose(1, 2)
         x_embedding = x_embedding + self._pos_embedding
 
-        t_embedding = self._time_embedding(t)
+        t_embedding = self._time_embedding(step)
         x_embedding = x_embedding + t_embedding[:, None, :]
 
         x = self._transformers(x_embedding)
