@@ -10,18 +10,20 @@ class EndNoisify(BaseNoisify):
         super().__init__(samples)
         self._max_percentage = max_percentage
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> list[tuple[torch.Tensor, torch.Tensor]]:
         start = random.randint(
             a=x.shape[0] - int(x.shape[0] * self._max_percentage), b=x.shape[0]
         )
         end = x.shape[0]
-        result = torch.zeros((self._samples, x.shape[0], x.shape[1]), dtype=x.dtype)
-
-        for i in range(0, self._samples):
-            result[i, :, :] = x
+        result = [(x, torch.tensor(i)) for i in range(self._samples)]
 
         for i in range(self._samples - 2, -1, -1):
-            result[i, :, start:end] = self._noisify(result[i + 1], start, end)
+            current_x = result[i][0]
+            next_x = result[i + 1][0]
+
+            current_x = self._noisify(next_x, start, end)
+
+            result[i] = (current_x, torch.tensor(i))
 
         return result
 

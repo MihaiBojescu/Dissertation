@@ -12,6 +12,8 @@ class BaseNoisify(torch.nn.Module):
         return x
 
     def _noisify(self, x: torch.Tensor, start: int, end: int) -> torch.Tensor:
-        return x[:, start:end] + (
-            torch.rand((x.shape[0], end - start), dtype=x.dtype) * 0.1
+        x = x.clone()
+        x[..., start:end] = x[..., start:end] + (
+            torch.rand((x.shape[-2], end - start), dtype=x.dtype) * 0.1
         )
+        return x

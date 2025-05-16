@@ -10,19 +10,21 @@ class RandomNoisify(BaseNoisify):
         super().__init__(samples)
         self._index_chance = index_chance
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> list[tuple[torch.Tensor, torch.Tensor]]:
         picked_indices = [
             i for i in range(x.shape[-1]) if random.uniform(0, 1) > self._index_chance
         ]
-        result = torch.zeros((self._samples, x.shape[0], x.shape[1]), dtype=x.dtype)
-
-        for i in range(0, self._samples):
-            result[i, :, :] = x
+        result = [(x, torch.tensor(i)) for i in range(self._samples)]
 
         for i in range(self._samples - 2, -1, -1):
+            current_x = result[i][0]
+            next_x = result[i + 1][0]
+
             for j in picked_indices:
                 start = j
                 end = j + 1
-                result[i, :, start:end] = self._noisify(result[i + 1], start, end)
+                current_x = self._noisify(next_x, start, end)
+
+            result[i] = (current_x, torch.tensor(i))
 
         return result
