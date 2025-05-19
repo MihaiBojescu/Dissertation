@@ -1,12 +1,15 @@
 import csv
+from multiprocessing.pool import AsyncResult
 import os
 import typing as t
-import matplotlib.pyplot as plt
+import multiprocessing
+import tqdm
+from common.preprocess.files import RawAudioFile
 from preprocess.spectrogramTransformer import SpectrogramTransformer
 from preprocess.wavDecoder import WavDecoder
 from common.preprocess.decoder import BaseDecoder
-from common.preprocess.files import DecodedAudioFile, RawAudioFile, TransformedAudioFile
 from common.preprocess.transformer import BaseSpectrogramTransformer
+from preprocess.worker import Worker
 
 
 class Preprocessor:
@@ -14,6 +17,7 @@ class Preprocessor:
     __output_path: str
     __decoders: dict[str, BaseDecoder]
     __transformer: BaseSpectrogramTransformer
+    __n_procs: int
 
     def __init__(
         self,
@@ -21,33 +25,56 @@ class Preprocessor:
         output_path: str = "./data/spectrogram",
         decoders: dict[str, BaseDecoder] = {"wav": WavDecoder()},
         transformer: BaseSpectrogramTransformer = SpectrogramTransformer(),
+        n_procs: int = 2,
     ) -> None:
         self.__input_path = input_path
         self.__output_path = output_path
         self.__decoders = decoders
         self.__transformer = transformer
+        self.__n_procs = n_procs
 
     def run(
         self,
         n_ffts: int = 1024,
         hop_length: None | int = None,
     ):
-        if hop_length is None:
-            hop_length = n_ffts // 2
+        results: list[AsyncResult] = []
+        count = self.__count_files()
 
-        with open(f"{self.__output_path}/dataset.csv", "w", encoding="utf-8") as file:
-            writer = csv.writer(file)
-            self.__init_csv(writer)
+        with open(
+            f"{self.__output_path}/dataset.csv", "w", encoding="utf-8"
+        ) as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(("filename", "channel"))
+            csv_file.flush()
+            worker = Worker(
+                self.__output_path,
+                self.__decoders,
+                self.__transformer,
+                n_ffts,
+                hop_length,
+            )
 
-            for raw_file in self.__read_files():
-                decoded_file = self.__decode(raw_file)
-                transformed_file = self.__transform(decoded_file, n_ffts, hop_length)
+            with multiprocessing.Pool(processes=self.__n_procs) as pool:
+                raw_files = self.__read_files()
 
-                files = self.__write_file(transformed_file)
-                self.__update_csv(writer, files)
+                for raw_file in tqdm.tqdm(raw_files, total=count):
+                    if len(results) > self.__n_procs:
+                        results[0].wait()
+                        results.pop(0)
 
-    def __init_csv(self, writer: t.Any):
-        writer.writerow(("filename", "channel"))
+                    result = pool.apply_async(
+                        worker.run,
+                        args=(raw_file,),
+                        callback=self.__write(csv_writer, csv_file),
+                    )
+                    results.append(result)
+
+            for result in results:
+                result.wait()
+
+    def __count_files(self):
+        return len(os.listdir(self.__input_path))
 
     def __read_files(self):
         for file_path in os.listdir(self.__input_path):
@@ -67,61 +94,9 @@ class Preprocessor:
 
             yield RawAudioFile(name=file_name, extension=file_extension, data=file_data)
 
-    def __decode(self, raw_file: RawAudioFile) -> DecodedAudioFile:
-        decoder = self.__decoders[raw_file.extension]
-        return decoder.decode(raw_file)
+    def __write(self, csv_writer: t.Any, csv_file: t.Any):
+        def run(rows: list[tuple[str, int]]):
+            csv_writer.writerows(rows)
+            csv_file.flush()
 
-    def __transform(
-        self,
-        decoded_file: DecodedAudioFile,
-        n_ffts: int,
-        hop_length: int,
-    ) -> TransformedAudioFile:
-        return self.__transformer.encode(
-            decoded_file=decoded_file,
-            sampling_rate=decoded_file.sample_rate,
-            n_ffts=n_ffts,
-            hop_length=hop_length,
-        )
-
-    def __write_file(
-        self, transformed_file: TransformedAudioFile
-    ) -> list[tuple[str, int]]:
-        files: list[tuple[str, int]] = []
-        file_name_prefix = f"{transformed_file.name}.{transformed_file.extension}"
-        plt.switch_backend("TkAgg")
-
-        for i, entry in enumerate(transformed_file.data):
-            time_bins = entry.magnitude.shape[1] / 1000
-            freq_bins = entry.magnitude.shape[0] / 1000
-
-            plt.figure(figsize=(time_bins, freq_bins))
-            plt.pcolormesh(
-                entry.times,
-                entry.frequencies,
-                entry.magnitude,
-                shading="auto",
-                cmap="viridis",
-            )
-            plt.ylim(0, transformed_file.sample_rate // 2)
-
-            plt.axis("off")
-            plt.title("")
-            plt.xlabel("")
-            plt.ylabel("")
-
-            plt.savefig(
-                f"{self.__output_path}/{file_name_prefix}.{i}.png",
-                bbox_inches="tight",
-                pad_inches=0,
-                dpi=500,
-            )
-            plt.close()
-
-            files.append((f"{file_name_prefix}.{i}.png", i))
-
-        return files
-
-    def __update_csv(self, writer: t.Any, files: list[tuple[str, int]]):
-        for entry in files:
-            writer.writerow((entry[0], entry[1]))
+        return run

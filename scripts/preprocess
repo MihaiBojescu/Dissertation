@@ -17,12 +17,13 @@ def main():
     transformer = SpectrogramTransformer()
     preprocessor = Preprocessor(
         decoders=decoders,
-        transformer=transformer
+        transformer=transformer,
+        n_procs=4
     )
 
     preprocessor.run(
-        n_ffts=4096,
-        hop_length=1024
+        n_ffts=8192,
+        hop_length=4096
     )
 
 if __name__ == "__main__":

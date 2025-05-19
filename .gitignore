@@ -202,6 +202,8 @@ data/input/*.wma
 data/input/*.wav
 data/input/*.mp3
 data/input/*.aiff
+data/spectrogram/*.csv
+data/spectrogram/*.npy
 data/spectrogram/*.png
 data/spectrogram/*.jpg
 data/spectrogram/*.jpeg

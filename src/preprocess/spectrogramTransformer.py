@@ -17,7 +17,6 @@ class SpectrogramTransformer(BaseSpectrogramTransformer):
         hop_length: int,
     ) -> TransformedAudioFile:
         window = np.blackman(n_ffts)
-        data: list[TransformedAudioFileChannelData] = []
 
         sft = signal.ShortTimeFFT(
             win=window,
@@ -27,39 +26,17 @@ class SpectrogramTransformer(BaseSpectrogramTransformer):
             scale_to="magnitude",
         )
 
-        for channel in range(0, decoded_file.n_channels):
-            channel_data = decoded_file.data[channel :: decoded_file.n_channels]
-            channel_data = np.ascontiguousarray(channel_data)
-            channel_data = channel_data.astype(np.float32) / np.max(
-                np.abs(channel_data)
-            )
-
-            Sx = sft.stft(x=channel_data)
-            Sx = self.__to_decibels(Sx)
-
-            magnitude = np.abs(Sx)
-            num_time_bins = magnitude.shape[1]
-            num_freq_bins = magnitude.shape[0]
-            times = (np.arange(num_time_bins + 1) * hop_length) / sampling_rate
-            frequencies = np.linspace(0, sampling_rate // 2, num_freq_bins + 1)
-
-            data.append(
-                TransformedAudioFileChannelData(
-                    Sx=Sx,
-                    times=times,
-                    frequencies=frequencies,
-                    magnitude=magnitude,
-                )
-            )
+        Sx = sft.stft(x=decoded_file.data)
+        Sx = self.__to_decibels(Sx)
+        Sx = np.stack([Sx.real, Sx.imag], axis=0).astype(np.float16)
 
         return TransformedAudioFile(
             name=decoded_file.name,
             extension=decoded_file.extension,
             bits_per_sample=decoded_file.bits_per_sample,
             sample_rate=decoded_file.sample_rate,
-            data=data,
+            data=[TransformedAudioFileChannelData(Sx=Sx)],
         )
-
 
     def __to_decibels(self, Sx: np.ndarray[tuple[int, ...], np.dtype[np.float32]]):
         eps = 1e-10
@@ -83,9 +60,7 @@ class SpectrogramTransformer(BaseSpectrogramTransformer):
             channel.Sx = self.__from_decibels(channel.Sx)
 
         n_channels = len(transformed_file.data)
-        channel_lengths = [
-            sft.istft(channel.Sx).shape[0] for channel in data
-        ]
+        channel_lengths = [sft.istft(channel.Sx).shape[0] for channel in data]
         max_length = max(channel_lengths)
         reconstructed = np.zeros((max_length, n_channels), dtype=np.float32)
 

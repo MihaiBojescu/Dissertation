@@ -18,10 +18,7 @@ class DecodedAudioFile(RawAudioFile):
 
 @dataclass
 class TransformedAudioFileChannelData:
-    Sx: np.ndarray[tuple[int, ...], np.dtype[np.float64]]
-    times: np.ndarray[tuple[int, ...], np.dtype[np.float64]]
-    frequencies: np.ndarray[tuple[int, ...], np.dtype[np.float64]]
-    magnitude: np.ndarray[tuple[int, ...], np.dtype[np.float64]]
+    Sx: np.ndarray[tuple[int, ...], np.dtype[np.float16]]
 
 
 @dataclass
