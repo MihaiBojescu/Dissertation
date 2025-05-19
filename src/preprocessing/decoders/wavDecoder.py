@@ -2,8 +2,8 @@ import io
 import wave
 import struct
 import numpy as np
-from common.preprocess.decoder import BaseDecoder
-from common.preprocess.files import DecodedAudioFile, RawAudioFile
+from interfaces.preprocessing.decoder import BaseDecoder
+from interfaces.preprocessing.files import DecodedAudioFile, RawAudioFile
 
 
 class WavDecoder(BaseDecoder):

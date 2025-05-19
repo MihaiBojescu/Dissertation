@@ -4,11 +4,11 @@ import os
 import typing as t
 import multiprocessing
 import tqdm
-from common.preprocess.files import RawAudioFile
+from interfaces.preprocessing.files import RawAudioFile
 from preprocessing.transformers.spectrogramTransformer import SpectrogramTransformer
 from preprocessing.decoders.wavDecoder import WavDecoder
-from common.preprocess.decoder import BaseDecoder
-from common.preprocess.transformer import BaseSpectrogramTransformer
+from interfaces.preprocessing.decoder import BaseDecoder
+from interfaces.preprocessing.transformer import BaseSpectrogramTransformer
 from preprocessing.worker import Worker
 
 

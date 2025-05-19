@@ -1,6 +1,6 @@
 import random
 import torch
-from common.utils.noisify import BaseNoisify
+from interfaces.utils.noisify import BaseNoisify
 
 
 class MidNoisify(BaseNoisify):

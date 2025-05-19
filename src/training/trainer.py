@@ -1,7 +1,7 @@
 import typing as t
 import torch
 import tqdm
-from common.utils.trainer import BaseTrainer
+from interfaces.training.trainer import BaseTrainer
 
 
 class ModelTrainer(

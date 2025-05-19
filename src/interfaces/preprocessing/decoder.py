@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from common.preprocess.files import DecodedAudioFile, RawAudioFile
+from interfaces.preprocessing.files import DecodedAudioFile, RawAudioFile
 
 
 class BaseDecoder(ABC):

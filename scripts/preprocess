@@ -5,10 +5,10 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
-from common.preprocess.decoder import BaseDecoder
-from preprocess.preprocessor import Preprocessor
-from preprocess.spectrogramTransformer import SpectrogramTransformer
-from preprocess.wavDecoder import WavDecoder
+from interfaces.preprocessing.decoder import BaseDecoder
+from preprocessing.preprocessor import Preprocessor
+from preprocessing.spectrogramTransformer import SpectrogramTransformer
+from preprocessing.wavDecoder import WavDecoder
 
 def main():
     decoders: dict[str, BaseDecoder] = {

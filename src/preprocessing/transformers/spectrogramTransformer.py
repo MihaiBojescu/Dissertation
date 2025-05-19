@@ -1,11 +1,11 @@
 import numpy as np
 from scipy import signal
-from common.preprocess.files import (
+from interfaces.preprocessing.files import (
     DecodedAudioFile,
     TransformedAudioFile,
     TransformedAudioFileChannelData,
 )
-from common.preprocess.transformer import BaseSpectrogramTransformer
+from interfaces.preprocessing.transformer import BaseSpectrogramTransformer
 
 
 class SpectrogramTransformer(BaseSpectrogramTransformer):

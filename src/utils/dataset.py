@@ -1,7 +1,7 @@
 import pandas as pd
 import typing as t
+import numpy as np
 import torch
-import torchvision.io as io
 
 
 class SpectrogramDataset(torch.utils.data.Dataset[tuple[torch.Tensor, torch.Tensor]]):
@@ -25,7 +25,7 @@ class SpectrogramDataset(torch.utils.data.Dataset[tuple[torch.Tensor, torch.Tens
             t.Callable[[torch.Tensor], tuple[torch.Tensor, torch.Tensor]],
             t.Callable[[torch.Tensor], list[tuple[torch.Tensor, torch.Tensor]]],
         ] = lambda x: x,
-        multiplexing_factor: int = 1
+        multiplexing_factor: int = 1,
     ):
         super().__init__()
         self.__input_path = input_path
@@ -49,22 +49,20 @@ class SpectrogramDataset(torch.utils.data.Dataset[tuple[torch.Tensor, torch.Tens
             row_index = index // self.__multiplexing_factor
 
         row = self.__data.iloc[row_index]
-        filename = row["filename"]
+        spectrogram = row["spectrogram"]
 
         if batch_index == 0 or len(self.__current_batch) == 0:
-            image_tensor = io.decode_image(
-                f"{self.__input_path}/{filename}", mode=io.ImageReadMode.RGB
-            )
-            image_tensor = self.__pre_transformations(image_tensor)
-            result = self.__transformations(image_tensor)
+            spectrogram_tensor = torch.from_numpy(np.load(f"{self.__input_path}/{spectrogram}"))
+            spectrogram_tensor = self.__pre_transformations(spectrogram_tensor)
+            result = self.__transformations(spectrogram_tensor)
 
             if torch.is_tensor(result):
-                self.__current_batch = [(result, torch.tensor(0), image_tensor)]
+                self.__current_batch = [(result, torch.tensor(0), spectrogram_tensor)]
             elif type(result) == tuple:
-                self.__current_batch = [(result[0], result[1], image_tensor)]
+                self.__current_batch = [(result[0], result[1], spectrogram_tensor)]
             elif type(result) == list:
                 self.__current_batch = [
-                    (entry[0], entry[1], image_tensor) for entry in result
+                    (entry[0], entry[1], spectrogram_tensor) for entry in result
                 ]
 
         entry = self.__current_batch[batch_index] or (

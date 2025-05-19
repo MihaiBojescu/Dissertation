@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from common.preprocess.files import DecodedAudioFile, TransformedAudioFile
+from interfaces.preprocessing.files import DecodedAudioFile, TransformedAudioFile
 
 
 class BaseSpectrogramTransformer(ABC):
