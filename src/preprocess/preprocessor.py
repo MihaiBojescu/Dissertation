@@ -45,7 +45,7 @@ class Preprocessor:
             f"{self.__output_path}/dataset.csv", "w", encoding="utf-8"
         ) as csv_file:
             csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(("filename", "channel"))
+            csv_writer.writerow(("filename", "data", "channel"))
             csv_file.flush()
             worker = Worker(
                 self.__output_path,
@@ -95,7 +95,7 @@ class Preprocessor:
             yield RawAudioFile(name=file_name, extension=file_extension, data=file_data)
 
     def __write(self, csv_writer: t.Any, csv_file: t.Any):
-        def run(rows: list[tuple[str, int]]):
+        def run(rows: list[tuple[str, str, int]]):
             csv_writer.writerows(rows)
             csv_file.flush()
 

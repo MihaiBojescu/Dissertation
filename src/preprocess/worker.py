@@ -54,8 +54,8 @@ class Worker:
 
     def __write_file(
         self, transformed_file: TransformedAudioFile
-    ) -> list[tuple[str, int]]:
-        files: list[tuple[str, int]] = []
+    ) -> list[tuple[str, str, int]]:
+        files: list[tuple[str, str, int]] = []
         file_name_prefix = f"{transformed_file.name}.{transformed_file.extension}"
 
         for i, entry in enumerate(transformed_file.data):
@@ -64,6 +64,12 @@ class Worker:
             ) as out_file:
                 np.save(out_file, entry.Sx)
 
-            files.append((f"{file_name_prefix}.{i}.npy", i))
+            files.append(
+                (
+                    f"{transformed_file.name}.{transformed_file.extension}",
+                    f"{file_name_prefix}.{i}.npy",
+                    i,
+                )
+            )
 
         return files
