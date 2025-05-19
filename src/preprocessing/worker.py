@@ -1,6 +1,6 @@
 import numpy as np
-from preprocess.spectrogramTransformer import SpectrogramTransformer
-from preprocess.wavDecoder import WavDecoder
+from preprocessing.transformers.spectrogramTransformer import SpectrogramTransformer
+from preprocessing.decoders.wavDecoder import WavDecoder
 from common.preprocess.decoder import BaseDecoder
 from common.preprocess.files import DecodedAudioFile, RawAudioFile, TransformedAudioFile
 from common.preprocess.transformer import BaseSpectrogramTransformer
