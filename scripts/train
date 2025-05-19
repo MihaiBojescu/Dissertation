@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 
+import datetime
 import sys
 import os
+import torch
 
 sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
 )
+torch.multiprocessing.set_start_method("spawn")
 
-import datetime
-import torch
 import torchvision.transforms.v2 as v2
 from utils.device import get_device
 from utils.randomNoisify import RandomNoisify
@@ -38,10 +39,14 @@ def main():
     generator = torch.Generator(device)
     dataloader = torch.utils.data.DataLoader(
         dataset,
-        batch_size=8,
+        batch_size=16,
+        prefetch_factor=4,
         shuffle=True,
         collate_fn=collate.collate,
         generator=generator,
+        persistent_workers=True,
+        num_workers=8,
+        pin_memory=True
     )
 
     model = DiffusionTransformer(
@@ -56,7 +61,7 @@ def main():
     loss_function = torch.nn.MSELoss()
 
     trainer = ModelTrainer(model, optimiser, loss_function)
-    trainer.train(dataloader, epochs=10)
+    trainer.train(dataloader, epochs=5)
     trainer.save(
         f"./data/weights/{datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()}.pt"
     )
