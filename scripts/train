@@ -8,7 +8,7 @@ import torch
 sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
 )
-torch.multiprocessing.set_start_method("spawn")
+torch.multiprocessing.set_start_method("spawn", force=True)
 
 import torchvision.transforms.v2 as v2
 from utils.device import get_device
