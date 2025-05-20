@@ -1,30 +1,35 @@
 import random
 import torch
-from interfaces.utils.noisify import BaseNoisify
+from noisify import BaseNoisify
 
 
 class MidNoisify(BaseNoisify):
     _max_percentage: float
 
-    def __init__(self, samples: int, max_percentage: float):
-        super().__init__(samples)
+    def __init__(
+        self,
+        samples: int,
+        max_percentage: float,
+        beta_start: float = 0.0025,
+        beta_end: float = 0.05,
+    ):
+        super().__init__(samples, beta_start, beta_end)
         self._max_percentage = max_percentage
 
-    def forward(self, x: torch.Tensor) -> list[tuple[torch.Tensor, torch.Tensor]]:
-        start = random.randint(
-            a=0, b=x.shape[0] - int(x.shape[0] * self._max_percentage)
-        )
+    def forward(
+        self,
+        x: torch.Tensor,
+    ) -> list[tuple[torch.Tensor, torch.Tensor]]:
+        start = random.randint(a=0, b=int(x.shape[-1] * self._max_percentage))
         end = random.randint(
             a=start,
-            b=max(start + int(x.shape[0] * self._max_percentage), x.shape[0]),
+            b=min(start + int(x.shape[-1] * self._max_percentage), x.shape[-1]),
         )
         result = [(x, torch.tensor(i)) for i in range(self._samples)]
 
-        for i in range(self._samples - 2, -1, -1):
-            current_x = result[i][0]
-            next_x = result[i + 1][0]
-
-            current_x = self._noisify(next_x, start, end)
+        for i in range(1, self._samples):
+            previous_x = result[i - 1][0]
+            current_x = self._noisify(previous_x, start, end, i)
 
             result[i] = (current_x, torch.tensor(i))
 
