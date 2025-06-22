@@ -1,0 +1,44 @@
+[project]
+name = "project"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Mihai Bojescu",email = "bojescu.mihai@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy (>=2.2.4,<3.0.0)",
+    "matplotlib (>=3.10.1,<4.0.0)",
+    "scipy (>=1.15.2,<2.0.0)",
+    "pyqt5 (>=5.15.11,<6.0.0)",
+    "debugpy (>=1.8.14,<2.0.0)",
+    "black (>=25.1.0,<26.0.0)",
+    "torch (>=2.7.0,<3.0.0)",
+    "torchvision (>=0.22.0,<0.23.0)",
+    "tqdm (>=4.67.1,<5.0.0)",
+    "pandas (>=2.2.3,<3.0.0)"
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = false
+
+[[tool.poetry.source]]
+name = "pytorch-rocm"
+url = "https://download.pytorch.org/whl/rocm6.3"
+priority = "supplemental"
+
+
+[[tool.poetry.source]]
+name = "pytorch-ipex"
+url = "https://pytorch-extension.intel.com/release-whl/stable/xpu/us/"
+priority = "supplemental"
+
+[tool.poetry.dependencies]
+torch = {source = "pytorch-rocm"}
+torchvision = {source = "pytorch-rocm"}
+intel-extension-for-pytorch = { url = "https://pytorch-extension.intel.com/whl/intel_extension_for_pytorch-2.7.10+xpu-cp312-cp312-linux_x86_64.whl" }
