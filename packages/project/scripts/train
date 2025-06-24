@@ -15,7 +15,7 @@ import torchvision.transforms.v2 as v2
 from utils.endNoisify import EndNoisify
 from utils.device import get_device
 from utils.randomNoisify import RandomNoisify
-from utils.dataset import SpectrogramDataset
+from utils.dataset import SpectrogramDataset, AugmentingTransform
 from utils.collate import PaddingCollate
 from model.diffusionTransformer.diffusionTransformer import DiffusionTransformer
 from training.trainer import ModelTrainer
@@ -25,22 +25,18 @@ def main():
     device = get_device()
     torch.set_default_device(device)
 
-    random_noise_samples_count = 10
-    augmented_samples_count = random_noise_samples_count + random_noise_samples_count
-
-    pre_transformations = v2.Compose(
+    base_transformations = v2.Compose(
         [v2.ToImage(), v2.ToDtype(torch.float32, scale=True), v2.Resize((412, 256))]
     )
-    transformations = v2.Compose(
-        [
-            RandomNoisify(random_noise_samples_count),
-            EndNoisify(random_noise_samples_count, max_percentage=0.5),
-        ]
-    )
+    augmenting_transformations = [
+        AugmentingTransform(samples = 10, transform = RandomNoisify(10)),
+        AugmentingTransform(samples = 10, transform = EndNoisify(samples=10, max_percentage=0.5)),
+    ]
+
     dataset = SpectrogramDataset(
-        pre_transformations=pre_transformations,
-        transformations=transformations,
-        multiplexing_factor=augmented_samples_count,
+        base_transforms=base_transformations,
+        augmenting_transforms=augmenting_transformations,
+
     )
     collate = PaddingCollate()
     generator = torch.Generator(device)
@@ -52,7 +48,7 @@ def main():
         collate_fn=collate.collate,
         generator=generator,
         persistent_workers=True,
-        num_workers=8,
+        num_workers=1,
         pin_memory=True,
     )
 
