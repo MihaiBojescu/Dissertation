@@ -17,7 +17,7 @@ from utils.device import get_device
 from utils.randomNoisify import RandomNoisify
 from utils.dataset import SpectrogramDataset
 from utils.collate import PaddingCollate
-from model.diffusionTransformer import DiffusionTransformer
+from model.diffusionTransformer.diffusionTransformer import DiffusionTransformer
 from training.trainer import ModelTrainer
 
 

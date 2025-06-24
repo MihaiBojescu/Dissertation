@@ -1,8 +1,8 @@
 import torch
-from model.patchDeEmbedding import PatchDeEmbedding
-from model.patchEmbedding import PatchEmbedding
-from model.timeEmbedding import TimeEmbedding
-from model.transformer import Transformer
+from model.diffusionTransformer.patchDeEmbedding import PatchDeEmbedding
+from model.diffusionTransformer.patchEmbedding import PatchEmbedding
+from model.diffusionTransformer.timeEmbedding import TimeEmbedding
+from model.diffusionTransformer.transformer import Transformer
 
 
 class DiffusionTransformer(torch.nn.Module):
