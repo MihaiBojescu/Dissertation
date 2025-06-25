@@ -31,13 +31,13 @@ class ModelTrainer(
     ):
         self._model.train()
 
-        for _ in tqdm.tqdm(range(epochs), position=0, unit="iters"):
-            for x, step, y in tqdm.tqdm(
-                dataloader, position=1, leave=False, unit="batches"
+        for _ in tqdm.tqdm(range(epochs), position=0, unit="iter"):
+            for x, y, step in tqdm.tqdm(
+                dataloader, position=1, leave=False, unit="batch"
             ):
                 x = x.to(torch.get_default_device())
-                step = step.to(torch.get_default_device())
                 y = y.to(torch.get_default_device())
+                step = step.to(torch.get_default_device())
 
                 self._optimiser.zero_grad()
                 y_hat = self._model(x=x, step=step)
@@ -59,7 +59,7 @@ class ModelTrainer(
         self._model.eval()
 
         for x, y, step in tqdm.tqdm(
-            dataloader, position=1, leave=False, unit="batches"
+            dataloader, position=1, leave=False, unit="batch"
         ):
             x = x.to(torch.get_default_device())
             y = y.to(torch.get_default_device())
