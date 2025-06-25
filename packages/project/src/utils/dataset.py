@@ -15,6 +15,7 @@ class AugmentingTransform:
 class AugmentationCache:
     spectrogram: torch.Tensor
     spectrogram_index: int
+    base_transform_result: torch.Tensor
     augmenting_transform: AugmentingTransform
     augmenting_transform_index: int
     augmenting_transform_results: list[tuple[torch.Tensor, torch.Tensor]]
@@ -96,8 +97,8 @@ class SpectrogramDataset(torch.utils.data.Dataset[tuple[torch.Tensor, torch.Tens
             ]
 
             return (
-                self.__cache.spectrogram,
                 augmenting_transform_result[0],
+                self.__cache.base_transform_result,
                 augmenting_transform_result[1],
             )
 
@@ -113,6 +114,7 @@ class SpectrogramDataset(torch.utils.data.Dataset[tuple[torch.Tensor, torch.Tens
         self.__cache = AugmentationCache(
             spectrogram=spectrogram_tensor,
             spectrogram_index=row_index,
+            base_transform_result=base_transform_result,
             augmenting_transform=self.__augmenting_transforms[
                 augmenting_transform_index
             ],
@@ -122,7 +124,7 @@ class SpectrogramDataset(torch.utils.data.Dataset[tuple[torch.Tensor, torch.Tens
         )
 
         return (
-            spectrogram_tensor,
             augmenting_transform_result[0],
+            base_transform_result,
             augmenting_transform_result[1],
         )

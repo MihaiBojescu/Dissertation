@@ -58,12 +58,12 @@ class ModelTrainer(
     ):
         self._model.eval()
 
-        for x, step, y in tqdm.tqdm(
+        for x, y, step in tqdm.tqdm(
             dataloader, position=1, leave=False, unit="batches"
         ):
             x = x.to(torch.get_default_device())
-            step = step.to(torch.get_default_device())
             y = y.to(torch.get_default_device())
+            step = step.to(torch.get_default_device())
 
             self._optimiser.zero_grad()
             y_hat = self._model(x=x, step=step)
