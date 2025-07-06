@@ -1,4 +1,12 @@
 {
     "python.analysis.useLibraryCodeForTypes": true,
-    "python.analysis.autoImportCompletions": true
+    "python.analysis.autoImportCompletions": true,
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./tests",
+        "-p",
+        "*_test.py"
+    ],
+    "python.testing.unittestEnabled": true,
 }
