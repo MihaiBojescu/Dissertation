@@ -14,7 +14,7 @@ torch.multiprocessing.set_start_method("spawn", force=True)
 import torchvision.transforms.v2 as v2
 from utils.endNoisify import EndNoisify
 from utils.device import get_device
-from utils.randomNoisify import RandomNoisify
+from utils.randomRangeNoisify import RandomRangeNoisify
 from utils.dataset import SpectrogramDataset, AugmentingTransform
 from utils.collate import PaddingCollate
 from model.diffusionTransformer.diffusionTransformer import DiffusionTransformer
@@ -29,7 +29,7 @@ def main():
         [v2.ToImage(), v2.ToDtype(torch.float32, scale=True), v2.Resize((412, 256))]
     )
     augmenting_transformations = [
-        AugmentingTransform(samples = 10, transform = RandomNoisify(10)),
+        AugmentingTransform(samples = 10, transform = RandomRangeNoisify(10)),
         AugmentingTransform(samples = 10, transform = EndNoisify(samples=10, max_percentage=0.5)),
     ]
 
