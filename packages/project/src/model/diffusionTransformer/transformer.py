@@ -19,7 +19,7 @@ class Transformer(torch.nn.Module):
         self._linear = torch.nn.Sequential(
             torch.nn.Linear(self._dims, self._dims * 4),
             torch.nn.LeakyReLU(),
-            torch.nn.Linear(self._dims * 4, self._dims)
+            torch.nn.Linear(self._dims * 4, self._dims),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

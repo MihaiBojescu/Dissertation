@@ -2,7 +2,11 @@ import numpy as np
 from preprocessing.transformers.spectrogramTransformer import SpectrogramTransformer
 from preprocessing.decoders.wavDecoder import WavDecoder
 from interfaces.preprocessing.decoder import BaseDecoder
-from interfaces.preprocessing.files import DecodedAudioFile, RawAudioFile, TransformedAudioFile
+from interfaces.preprocessing.files import (
+    DecodedAudioFile,
+    RawAudioFile,
+    TransformedAudioFile,
+)
 from interfaces.preprocessing.transformer import BaseSpectrogramTransformer
 
 

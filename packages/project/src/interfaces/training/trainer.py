@@ -4,6 +4,7 @@ import typing as t
 T = t.TypeVar("T")
 U = t.TypeVar("U")
 
+
 class BaseTrainer(t.Generic[T, U]):
     def train(
         self,

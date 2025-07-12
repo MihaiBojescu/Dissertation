@@ -5,7 +5,7 @@ from model.diffusionTransformer.timeEmbedding import TimeEmbedding
 from model.diffusionTransformer.transformer import Transformer
 
 
-class DiffusionTransformer(torch.nn.Module):
+class DiffusionTransformerModel(torch.nn.Module):
     _image_size: tuple[int, int]
     _patch_size: tuple[int, int]
     _tile_size: tuple[int, int]

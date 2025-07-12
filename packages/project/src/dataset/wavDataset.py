@@ -20,7 +20,9 @@ class WavDataset(torch.utils.data.Dataset[torch.Tensor]):
         self.__input_path = input_path
         self.__transformations = transformations
         self.__files = os.listdir(self.__input_path)
-        self.__files = [entry for entry in self.__files if os.path.splitext(entry)[1] == ".wav"]
+        self.__files = [
+            entry for entry in self.__files if os.path.splitext(entry)[1] == ".wav"
+        ]
         self.__last_entry = None
 
     def __len__(self):

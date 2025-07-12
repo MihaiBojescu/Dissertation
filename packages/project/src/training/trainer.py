@@ -4,9 +4,7 @@ import tqdm
 from interfaces.training.trainer import BaseTrainer
 
 
-class ModelTrainer(
-    BaseTrainer[t.Tuple[torch.Tensor, torch.Tensor], torch.Tensor]
-):
+class ModelTrainer(BaseTrainer[t.Tuple[torch.Tensor, torch.Tensor], torch.Tensor]):
     _model: torch.nn.Module
     _optimiser: torch.optim.Optimizer
     _loss_function: torch.nn.Module
@@ -23,9 +21,7 @@ class ModelTrainer(
 
     def train(
         self,
-        dataloader: torch.utils.data.DataLoader[
-            t.Tuple[torch.Tensor, torch.Tensor]
-        ],
+        dataloader: torch.utils.data.DataLoader[t.Tuple[torch.Tensor, torch.Tensor]],
         epochs: int,
         callback: t.Callable[[torch.Tensor, float], None] = lambda y_hat, loss: None,
     ):
@@ -49,18 +45,12 @@ class ModelTrainer(
 
     def eval(
         self,
-        dataloader: torch.utils.data.DataLoader[
-            t.Tuple[torch.Tensor, torch.Tensor]
-        ],
-        callback: t.Callable[
-            [torch.Tensor, float], None
-        ] = lambda y_hat, loss: None,
+        dataloader: torch.utils.data.DataLoader[t.Tuple[torch.Tensor, torch.Tensor]],
+        callback: t.Callable[[torch.Tensor, float], None] = lambda y_hat, loss: None,
     ):
         self._model.eval()
 
-        for x, y, step in tqdm.tqdm(
-            dataloader, position=1, leave=False, unit="batch"
-        ):
+        for x, y, step in tqdm.tqdm(dataloader, position=1, leave=False, unit="batch"):
             x = x.to(torch.get_default_device())
             y = y.to(torch.get_default_device())
             step = step.to(torch.get_default_device())
