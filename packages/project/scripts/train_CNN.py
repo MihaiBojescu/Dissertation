@@ -5,7 +5,6 @@ import sys
 import os
 import torch
 
-
 sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
 )
@@ -17,8 +16,8 @@ from utils.device import get_device
 from utils.randomRangeNoisify import RandomRangeNoisify
 from utils.dataset import SpectrogramDataset, AugmentingTransform
 from utils.collate import PaddingCollate
-from model.diffusionTransformer.diffusionTransformer import DiffusionTransformer
 from training.trainer import ModelTrainer
+from model.denoiseCnn.model import DenoiseCNN
 
 
 def main():
@@ -29,37 +28,36 @@ def main():
         [v2.ToImage(), v2.ToDtype(torch.float32, scale=True), v2.Resize((412, 256))]
     )
     augmenting_transformations = [
-        AugmentingTransform(samples = 10, transform = RandomRangeNoisify(10)),
-        AugmentingTransform(samples = 10, transform = EndNoisify(samples=10, max_percentage=0.5)),
+        AugmentingTransform(samples=10, transform=RandomRangeNoisify(10)),
+        AugmentingTransform(
+            samples=10, transform=EndNoisify(samples=10, max_percentage=0.5)
+        ),
     ]
 
     dataset = SpectrogramDataset(
         base_transforms=base_transformations,
         augmenting_transforms=augmenting_transformations,
-
     )
     collate = PaddingCollate()
     generator = torch.Generator(device)
     dataloader = torch.utils.data.DataLoader(
         dataset,
-        batch_size=16,
-        prefetch_factor=4,
+        batch_size=64,
         shuffle=True,
         collate_fn=collate.collate,
         generator=generator,
-        persistent_workers=True,
-        num_workers=1,
-        pin_memory=True,
     )
 
-    model = DiffusionTransformer(
-        image_size=(412, 256),
-        patch_size=(4, 4),
-        n_channels=2,
-        embedding_dims=256,
-        depth=4,
-        n_heads=4,
-    )
+    model = DenoiseCNN(in_channels=2, base_feats=32)
+
+    # model = DiffusionTransformer(
+    #     image_size=(412, 256),
+    #     patch_size=(4, 4),
+    #     n_channels=2,
+    #     embedding_dims=256,
+    #     depth=4,
+    #     n_heads=4,
+    # )
     optimiser = torch.optim.Adam(model.parameters(), 0.005)
     loss_function = torch.nn.MSELoss()
 
