@@ -9,4 +9,7 @@
         "*_test.py"
     ],
     "python.testing.unittestEnabled": true,
+    "python.analysis.extraPaths": ["src", "tests"],
+    "python.autoComplete.extraPaths": ["src", "tests"],
+    "cSpell.words": ["Noisify"]
 }
