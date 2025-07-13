@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import dataclasses
 import torch
+from utils.bplustree import BPlusTree
 
 
 @dataclasses.dataclass
@@ -12,7 +13,7 @@ class AugmentingTransform:
 
 
 @dataclasses.dataclass
-class AugmentationCache:
+class AugmentationCacheEntry:
     spectrogram: torch.Tensor
     spectrogram_index: int
     base_transform_result: torch.Tensor
@@ -28,7 +29,7 @@ class SpectrogramDataset(torch.utils.data.Dataset[tuple[torch.Tensor, torch.Tens
     __base_transforms: t.Callable[[torch.Tensor], torch.Tensor]
     __augmenting_transforms: list[AugmentingTransform]
     __augmenting_transforms_count: int
-    __cache: AugmentationCache | None
+    __cache: BPlusTree[AugmentationCacheEntry]
 
     def __init__(
         self,
@@ -44,7 +45,7 @@ class SpectrogramDataset(torch.utils.data.Dataset[tuple[torch.Tensor, torch.Tens
         self.__augmenting_transforms_count = sum(
             map(lambda x: x.samples, self.__augmenting_transforms)
         )
-        self.__cache = None
+        self.__cache = BPlusTree[AugmentationCacheEntry](max_size=128)
 
     def __len__(self):
         return len(self.__data) * (
@@ -76,6 +77,22 @@ class SpectrogramDataset(torch.utils.data.Dataset[tuple[torch.Tensor, torch.Tens
     def __get_with_augmentations(
         self, index: int
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        row_index, augmenting_transform_index, augmenting_transform_results_index = (
+            self.__get_indices(index)
+        )
+
+        cached_entry = self.__get_from_cache(
+            row_index, augmenting_transform_index, augmenting_transform_results_index
+        )
+
+        if cached_entry is not None:
+            return cached_entry
+
+        return self.__get_without_cache(
+            row_index, augmenting_transform_index, augmenting_transform_results_index
+        )
+
+    def __get_indices(self, index: int):
         row_index = index // self.__augmenting_transforms_count
         augmenting_transform_index = -1
         augmenting_transform_results_index = index % self.__augmenting_transforms_count
@@ -87,21 +104,38 @@ class SpectrogramDataset(torch.utils.data.Dataset[tuple[torch.Tensor, torch.Tens
 
             augmenting_transform_results_index -= transform.samples
 
+        return row_index, augmenting_transform_index, augmenting_transform_results_index
+
+    def __get_from_cache(
+        self,
+        row_index: int,
+        augmenting_transform_index: int,
+        augmenting_transform_results_index: int,
+    ):
+        cached_entry = self.__cache.get(row_index)
+
         if (
-            self.__cache is not None
-            and self.__cache.spectrogram_index == row_index
-            and self.__cache.augmenting_transform_index == augmenting_transform_index
+            cached_entry is None
+            or cached_entry.augmenting_transform_index != augmenting_transform_index
         ):
-            augmenting_transform_result = self.__cache.augmenting_transform_results[
-                augmenting_transform_results_index
-            ]
+            return None
 
-            return (
-                augmenting_transform_result[0],
-                self.__cache.base_transform_result,
-                augmenting_transform_result[1],
-            )
+        augmenting_transform_result = cached_entry.augmenting_transform_results[
+            augmenting_transform_results_index
+        ]
 
+        return (
+            augmenting_transform_result[0],
+            cached_entry.base_transform_result,
+            augmenting_transform_result[1],
+        )
+
+    def __get_without_cache(
+        self,
+        row_index: int,
+        augmenting_transform_index: int,
+        augmenting_transform_results_index: int,
+    ):
         spectrogram_tensor = self.__get_spectrogram(row_index)
         base_transform_result = self.__base_transforms(spectrogram_tensor)
         augmenting_transform_results = self.__augmenting_transforms[
@@ -111,16 +145,19 @@ class SpectrogramDataset(torch.utils.data.Dataset[tuple[torch.Tensor, torch.Tens
             augmenting_transform_results_index
         ]
 
-        self.__cache = AugmentationCache(
-            spectrogram=spectrogram_tensor,
-            spectrogram_index=row_index,
-            base_transform_result=base_transform_result,
-            augmenting_transform=self.__augmenting_transforms[
-                augmenting_transform_index
-            ],
-            augmenting_transform_index=augmenting_transform_index,
-            augmenting_transform_results=augmenting_transform_results,
-            augmenting_transform_results_index=augmenting_transform_results_index,
+        self.__cache.insert(
+            row_index,
+            AugmentationCacheEntry(
+                spectrogram=spectrogram_tensor,
+                spectrogram_index=row_index,
+                base_transform_result=base_transform_result,
+                augmenting_transform=self.__augmenting_transforms[
+                    augmenting_transform_index
+                ],
+                augmenting_transform_index=augmenting_transform_index,
+                augmenting_transform_results=augmenting_transform_results,
+                augmenting_transform_results_index=augmenting_transform_results_index,
+            ),
         )
 
         return (
