@@ -10,14 +10,18 @@ class BaseTrainer(t.Generic[T, U]):
         self,
         dataloader: torch.utils.data.DataLoader[T],
         epochs: int,
-        callback: t.Callable[[int, U, float], None] = lambda epoch, y_hat, loss: None,
+        callback: t.Callable[
+            [int, int, U, float], None
+        ] = lambda epoch, entry, y_hat, loss: None,
     ) -> None:
         pass
 
     def eval(
         self,
         dataloader: torch.utils.data.DataLoader[T],
-        callback: t.Callable[[int, U, float], None] = lambda epoch, y_hat, loss: None,
+        callback: t.Callable[
+            [int, int, U, float], None
+        ] = lambda epoch, entry, y_hat, loss: None,
     ) -> None:
         pass
 

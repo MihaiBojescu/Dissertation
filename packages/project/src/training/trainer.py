@@ -15,7 +15,7 @@ class ModelTrainer(BaseTrainer[t.Tuple[torch.Tensor, torch.Tensor], torch.Tensor
         model: torch.nn.Module,
         optimiser: torch.optim.Optimizer,
         loss_function: torch.nn.Module,
-        device: torch.device
+        device: torch.device,
     ):
         self._model = model
         self._optimiser = optimiser
@@ -26,13 +26,15 @@ class ModelTrainer(BaseTrainer[t.Tuple[torch.Tensor, torch.Tensor], torch.Tensor
         self,
         dataloader: torch.utils.data.DataLoader[t.Tuple[torch.Tensor, torch.Tensor]],
         epochs: int,
-        callback: t.Callable[[int, torch.Tensor, float], None] = lambda epoch, y_hat, loss: None,
+        callback: t.Callable[
+            [int, int, torch.Tensor, float], None
+        ] = lambda epoch, entry, y_hat, loss: None,
     ):
         self._model.train()
 
         for epoch in tqdm.tqdm(range(epochs), position=0, unit="iter"):
-            for x, y, step in tqdm.tqdm(
-                dataloader, position=1, leave=False, unit="batch"
+            for entry, (x, y, step) in enumerate(
+                tqdm.tqdm(dataloader, position=1, leave=False, unit="batch")
             ):
                 x = x.to(self._device)
                 y = y.to(self._device)
@@ -44,16 +46,20 @@ class ModelTrainer(BaseTrainer[t.Tuple[torch.Tensor, torch.Tensor], torch.Tensor
                 loss.backward()
                 self._optimiser.step()
 
-                callback(epoch, y_hat, loss.item())
+                callback(epoch, entry, y_hat, loss.item())
 
     def eval(
         self,
         dataloader: torch.utils.data.DataLoader[t.Tuple[torch.Tensor, torch.Tensor]],
-        callback: t.Callable[[int, torch.Tensor, float], None] = lambda epoch, y_hat, loss: None,
+        callback: t.Callable[
+            [int, int, torch.Tensor, float], None
+        ] = lambda epoch, entry, y_hat, loss: None,
     ):
         self._model.eval()
 
-        for x, y, step in tqdm.tqdm(dataloader, position=1, leave=False, unit="batch"):
+        for entry, (x, y, step) in enumerate(
+            tqdm.tqdm(dataloader, position=1, leave=False, unit="batch")
+        ):
             x = x.to(self._device)
             y = y.to(self._device)
             step = step.to(self._device)
@@ -62,7 +68,7 @@ class ModelTrainer(BaseTrainer[t.Tuple[torch.Tensor, torch.Tensor], torch.Tensor
             y_hat = self._model(x=x, step=step)
             loss = y_hat.loss
 
-            callback(0, y_hat, loss.item())
+            callback(0, entry, y_hat, loss.item())
 
     def save(self, path: str):
         torch.save(self._model.state_dict(), path)
