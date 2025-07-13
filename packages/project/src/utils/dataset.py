@@ -45,7 +45,7 @@ class SpectrogramDataset(torch.utils.data.Dataset[tuple[torch.Tensor, torch.Tens
         self.__augmenting_transforms_count = sum(
             map(lambda x: x.samples, self.__augmenting_transforms)
         )
-        self.__cache = BPlusTree[AugmentationCacheEntry](max_size=128)
+        self.__cache = BPlusTree[AugmentationCacheEntry](order=32, max_size=128)
 
     def __len__(self):
         return len(self.__data) * (
