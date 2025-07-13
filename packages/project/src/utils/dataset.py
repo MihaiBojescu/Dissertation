@@ -29,6 +29,7 @@ class SpectrogramDataset(torch.utils.data.Dataset[tuple[torch.Tensor, torch.Tens
     __base_transforms: t.Callable[[torch.Tensor], torch.Tensor]
     __augmenting_transforms: list[AugmentingTransform]
     __augmenting_transforms_count: int
+    __cache_size: int
     __cache: BPlusTree[AugmentationCacheEntry]
 
     def __init__(
@@ -36,6 +37,7 @@ class SpectrogramDataset(torch.utils.data.Dataset[tuple[torch.Tensor, torch.Tens
         input_path: str = "./data/spectrogram",
         base_transforms: t.Callable[[torch.Tensor], torch.Tensor] = lambda x: x,
         augmenting_transforms: list[AugmentingTransform] = [],
+        cache_size: int = 16
     ):
         super().__init__()
         self.__input_path = input_path
@@ -45,7 +47,8 @@ class SpectrogramDataset(torch.utils.data.Dataset[tuple[torch.Tensor, torch.Tens
         self.__augmenting_transforms_count = sum(
             map(lambda x: x.samples, self.__augmenting_transforms)
         )
-        self.__cache = BPlusTree[AugmentationCacheEntry](order=32, max_size=128)
+        self.__cache_size = cache_size
+        self.__cache = BPlusTree[AugmentationCacheEntry](order=8, max_size=self.__cache_size)
 
     def __len__(self):
         return len(self.__data) * (

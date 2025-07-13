@@ -36,11 +36,12 @@ def main():
     dataset = SpectrogramDataset(
         base_transforms=base_transformations,
         augmenting_transforms=augmenting_transformations,
+        cache_size=16,
     )
     collate = PaddingCollate()
     dataloader = torch.utils.data.DataLoader(
         dataset,
-        batch_size=8,
+        batch_size=16,
         shuffle=True,
         collate_fn=collate.collate,
         num_workers=8,

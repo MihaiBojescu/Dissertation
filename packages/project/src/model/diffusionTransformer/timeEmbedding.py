@@ -26,6 +26,7 @@ class TimeEmbedding(torch.nn.Module):
             * torch.arange(half, dtype=torch.float32)
             / half
         )
+        frequencies = frequencies.to(self._device)
         x = x[:, None].float() * frequencies[None]
         embedding = torch.cat([torch.sin(x), torch.cos(x)], dim=-1)
 

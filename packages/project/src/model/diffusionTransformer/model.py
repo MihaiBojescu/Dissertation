@@ -52,23 +52,22 @@ class DiffusionTransformerModel(torch.nn.Module):
             self._image_size[1] // self._patch_size[1]
         )
         self._pos_embedding = torch.nn.Parameter(
-            torch.zeros(1, self._n_patches, self._embedding_dims)
+            torch.zeros(1, self._n_patches, self._embedding_dims).to(self._device)
         )
         self._patch_embedding = PatchEmbedding(
-            self._embedding_dims, self._n_channels, self._patch_size, device
+            self._embedding_dims, self._n_channels, self._patch_size, self._device
         )
-        self._time_embedding = TimeEmbedding(self._embedding_dims, device)
+        self._time_embedding = TimeEmbedding(self._embedding_dims, self._device)
         self._transformers = torch.nn.Sequential(
             *(
-                Transformer(self._embedding_dims, self._n_heads, device)
+                Transformer(self._embedding_dims, self._n_heads, self._device)
                 for _ in range(self._depth)
             )
         )
         self._patch_de_embedding = PatchDeEmbedding(
-            self._embedding_dims, self._n_channels, self._patch_size, device
+            self._embedding_dims, self._n_channels, self._patch_size, self._device
         )
 
-        self._pos_embedding = self._pos_embedding.to(self._device)
         self._transformers = self._transformers.to(self._device)
 
     def forward(self, x: torch.Tensor, step: torch.Tensor) -> torch.Tensor:
