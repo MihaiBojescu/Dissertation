@@ -9,8 +9,8 @@ sys.path.insert(
 
 from interfaces.preprocessing.decoder import BaseDecoder
 from preprocessing.preprocessor import Preprocessor
-from preprocessing.spectrogramTransformer import SpectrogramTransformer
-from preprocessing.wavDecoder import WavDecoder
+from preprocessing.transformers.spectrogramTransformer import SpectrogramTransformer
+from preprocessing.decoders.wavDecoder import WavDecoder
 
 
 def main():
