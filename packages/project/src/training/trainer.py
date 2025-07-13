@@ -31,10 +31,6 @@ class ModelTrainer(BaseTrainer[t.Tuple[torch.Tensor, torch.Tensor], torch.Tensor
             for x, y, step in tqdm.tqdm(
                 dataloader, position=1, leave=False, unit="batch"
             ):
-                x = x.to(torch.get_default_device())
-                y = y.to(torch.get_default_device())
-                step = step.to(torch.get_default_device())
-
                 self._optimiser.zero_grad()
                 y_hat = self._model(x=x, step=step)
                 loss = self._loss_function(y_hat, y)
@@ -51,10 +47,6 @@ class ModelTrainer(BaseTrainer[t.Tuple[torch.Tensor, torch.Tensor], torch.Tensor
         self._model.eval()
 
         for x, y, step in tqdm.tqdm(dataloader, position=1, leave=False, unit="batch"):
-            x = x.to(torch.get_default_device())
-            y = y.to(torch.get_default_device())
-            step = step.to(torch.get_default_device())
-
             self._optimiser.zero_grad()
             y_hat = self._model(x=x, step=step)
             loss = y_hat.loss
