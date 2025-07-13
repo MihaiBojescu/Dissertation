@@ -8,16 +8,19 @@ class ModelTrainer(BaseTrainer[t.Tuple[torch.Tensor, torch.Tensor], torch.Tensor
     _model: torch.nn.Module
     _optimiser: torch.optim.Optimizer
     _loss_function: torch.nn.Module
+    _device: torch.device
 
     def __init__(
         self,
         model: torch.nn.Module,
         optimiser: torch.optim.Optimizer,
         loss_function: torch.nn.Module,
+        device: torch.device
     ):
         self._model = model
         self._optimiser = optimiser
         self._loss_function = loss_function
+        self._device = device
 
     def train(
         self,
@@ -31,6 +34,10 @@ class ModelTrainer(BaseTrainer[t.Tuple[torch.Tensor, torch.Tensor], torch.Tensor
             for x, y, step in tqdm.tqdm(
                 dataloader, position=1, leave=False, unit="batch"
             ):
+                x = x.to(self._device)
+                y = y.to(self._device)
+                step = step.to(self._device)
+
                 self._optimiser.zero_grad()
                 y_hat = self._model(x=x, step=step)
                 loss = self._loss_function(y_hat, y)
@@ -47,6 +54,10 @@ class ModelTrainer(BaseTrainer[t.Tuple[torch.Tensor, torch.Tensor], torch.Tensor
         self._model.eval()
 
         for x, y, step in tqdm.tqdm(dataloader, position=1, leave=False, unit="batch"):
+            x = x.to(self._device)
+            y = y.to(self._device)
+            step = step.to(self._device)
+
             self._optimiser.zero_grad()
             y_hat = self._model(x=x, step=step)
             loss = y_hat.loss

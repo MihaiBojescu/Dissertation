@@ -13,6 +13,7 @@ class DiffusionTransformerModel(torch.nn.Module):
     _embedding_dims: int
     _depth: int
     _n_heads: int
+    _device: torch.device
     _n_patches: int
     _patch_embedding: torch.nn.Module
     _time_embedding: torch.nn.Module
@@ -27,6 +28,7 @@ class DiffusionTransformerModel(torch.nn.Module):
         embedding_dims: int = 256,
         depth: int = 4,
         n_heads: int = 3,
+        device: torch.device = torch.device("cpu"),
     ):
         super().__init__()
         self._image_size = image_size
@@ -39,6 +41,7 @@ class DiffusionTransformerModel(torch.nn.Module):
         self._embedding_dims = embedding_dims
         self._depth = depth
         self._n_heads = n_heads
+        self._device = device
 
         assert (
             self._image_size[0] % self._patch_size[0] == 0
@@ -52,18 +55,21 @@ class DiffusionTransformerModel(torch.nn.Module):
             torch.zeros(1, self._n_patches, self._embedding_dims)
         )
         self._patch_embedding = PatchEmbedding(
-            self._embedding_dims, self._n_channels, self._patch_size
+            self._embedding_dims, self._n_channels, self._patch_size, device
         )
-        self._time_embedding = TimeEmbedding(self._embedding_dims)
+        self._time_embedding = TimeEmbedding(self._embedding_dims, device)
         self._transformers = torch.nn.Sequential(
             *(
-                Transformer(self._embedding_dims, self._n_heads)
+                Transformer(self._embedding_dims, self._n_heads, device)
                 for _ in range(self._depth)
             )
         )
         self._patch_de_embedding = PatchDeEmbedding(
-            self._embedding_dims, self._n_channels, self._patch_size
+            self._embedding_dims, self._n_channels, self._patch_size, device
         )
+
+        self._pos_embedding = self._pos_embedding.to(self._device)
+        self._transformers = self._transformers.to(self._device)
 
     def forward(self, x: torch.Tensor, step: torch.Tensor) -> torch.Tensor:
         batch_size, color_channels, height, width = x.shape

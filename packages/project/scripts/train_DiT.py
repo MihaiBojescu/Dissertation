@@ -22,7 +22,6 @@ from model.diffusionTransformer.model import DiffusionTransformerModel
 
 def main():
     device = get_device()
-    torch.set_default_device(device)
 
     base_transformations = v2.Compose(
         [v2.ToImage(), v2.ToDtype(torch.float32, scale=True), v2.Resize((412, 256))]
@@ -39,13 +38,13 @@ def main():
         augmenting_transforms=augmenting_transformations,
     )
     collate = PaddingCollate()
-    generator = torch.Generator(device)
     dataloader = torch.utils.data.DataLoader(
         dataset,
-        batch_size=64,
+        batch_size=16,
         shuffle=True,
         collate_fn=collate.collate,
-        generator=generator,
+        num_workers=8,
+        pin_memory=True,
     )
 
     model = DiffusionTransformerModel(
@@ -55,11 +54,12 @@ def main():
         embedding_dims=256,
         depth=4,
         n_heads=4,
+        device=device,
     )
     optimiser = torch.optim.Adam(model.parameters(), 0.005)
     loss_function = torch.nn.MSELoss()
 
-    trainer = ModelTrainer(model, optimiser, loss_function)
+    trainer = ModelTrainer(model, optimiser, loss_function, device)
     trainer.train(dataloader, epochs=5)
     trainer.save(
         f"./data/weights/{datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()}.pt"

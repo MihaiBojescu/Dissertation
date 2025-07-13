@@ -2,6 +2,7 @@ import torch
 
 
 class DenoiseCNN(torch.nn.Module):
+    _device: torch.device
     _encode_1: torch.nn.Module
     _pool_1: torch.nn.Module
     _encode_2: torch.nn.Module
@@ -14,8 +15,9 @@ class DenoiseCNN(torch.nn.Module):
     _decode_1: torch.nn.Module
     _out_conv: torch.nn.Module
 
-    def __init__(self, in_channels: int = 2, base_feats: int = 64):
+    def __init__(self, in_channels: int = 2, base_feats: int = 64, device: torch.device = torch.device("cpu")):
         super().__init__()
+        self._device = device
 
         self._encode_1 = torch.nn.Sequential(
             torch.nn.Conv2d(in_channels, base_feats, kernel_size=3, padding=1),
@@ -66,6 +68,19 @@ class DenoiseCNN(torch.nn.Module):
         )
 
         self._out_conv = torch.nn.Conv2d(base_feats, in_channels, kernel_size=1)
+
+        self._encode_1 = self._encode_1.to(self._device)
+        self._pool_1 = self._pool_1.to(self._device)
+        self._encode_2 = self._encode_2.to(self._device)
+        self._pool_2 = self._pool_2.to(self._device)
+        self._bottleneck = self._bottleneck.to(self._device)
+        self._time_embedding = self._time_embedding.to(self._device)
+        self._upscale_2 = self._upscale_2.to(self._device)
+        self._decode_2 = self._decode_2.to(self._device)
+        self._upscale_1 = self._upscale_1.to(self._device)
+        self._decode_1 = self._decode_1.to(self._device)
+        self._out_conv = self._out_conv.to(self._device)
+
 
     def forward(self, x: torch.Tensor, step: torch.Tensor) -> torch.Tensor:
         batch_size = x.shape[0]
