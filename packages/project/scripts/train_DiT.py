@@ -63,7 +63,7 @@ def main():
     trainer = ModelTrainer(model, optimiser, loss_function, device)
     trainer.train(dataloader, epochs=5)
     trainer.save(
-        f"./data/weights/{datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()}.pt"
+        f"./data/weights/DiT_{datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()}.pt"
     )
 
 
