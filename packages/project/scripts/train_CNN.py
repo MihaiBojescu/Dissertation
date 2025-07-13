@@ -11,6 +11,7 @@ sys.path.insert(
 torch.multiprocessing.set_start_method("spawn", force=True)
 
 import torchvision.transforms.v2 as v2
+from torch.utils.tensorboard import SummaryWriter
 from utils.endNoisify import EndNoisify
 from utils.device import get_device
 from utils.randomRangeNoisify import RandomRangeNoisify
@@ -51,9 +52,23 @@ def main():
     model = DenoiseCNN(in_channels=2, base_feats=32, device=device)
     optimiser = torch.optim.Adam(model.parameters(), 0.005)
     loss_function = torch.nn.MSELoss()
+    summary_writer = SummaryWriter("./logs")
 
     trainer = ModelTrainer(model, optimiser, loss_function, device)
-    trainer.train(dataloader, epochs=5)
+    trainer.train(
+        dataloader,
+        epochs=5,
+        callback=lambda epoch, entry, _y_hat, loss: summary_writer.add_scalar(
+            "Loss/train", loss, epoch * len(dataloader) + entry
+        ),
+    )
+    trainer.eval(
+        dataloader,
+        callback=lambda epoch, entry, _y_hat, loss: summary_writer.add_scalar(
+            "Loss/eval", loss, epoch * len(dataloader) + entry
+        ),
+    )
+    summary_writer.flush()
     trainer.save(
         f"./data/weights/CNN_{datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()}.pt"
     )
