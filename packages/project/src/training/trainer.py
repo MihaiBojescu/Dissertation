@@ -26,11 +26,11 @@ class ModelTrainer(BaseTrainer[t.Tuple[torch.Tensor, torch.Tensor], torch.Tensor
         self,
         dataloader: torch.utils.data.DataLoader[t.Tuple[torch.Tensor, torch.Tensor]],
         epochs: int,
-        callback: t.Callable[[torch.Tensor, float], None] = lambda y_hat, loss: None,
+        callback: t.Callable[[int, torch.Tensor, float], None] = lambda epoch, y_hat, loss: None,
     ):
         self._model.train()
 
-        for _ in tqdm.tqdm(range(epochs), position=0, unit="iter"):
+        for epoch in tqdm.tqdm(range(epochs), position=0, unit="iter"):
             for x, y, step in tqdm.tqdm(
                 dataloader, position=1, leave=False, unit="batch"
             ):
@@ -44,12 +44,12 @@ class ModelTrainer(BaseTrainer[t.Tuple[torch.Tensor, torch.Tensor], torch.Tensor
                 loss.backward()
                 self._optimiser.step()
 
-                callback(y_hat, loss.item())
+                callback(epoch, y_hat, loss.item())
 
     def eval(
         self,
         dataloader: torch.utils.data.DataLoader[t.Tuple[torch.Tensor, torch.Tensor]],
-        callback: t.Callable[[torch.Tensor, float], None] = lambda y_hat, loss: None,
+        callback: t.Callable[[int, torch.Tensor, float], None] = lambda epoch, y_hat, loss: None,
     ):
         self._model.eval()
 
@@ -62,7 +62,7 @@ class ModelTrainer(BaseTrainer[t.Tuple[torch.Tensor, torch.Tensor], torch.Tensor
             y_hat = self._model(x=x, step=step)
             loss = y_hat.loss
 
-            callback(y_hat, loss.item())
+            callback(0, y_hat, loss.item())
 
     def save(self, path: str):
         torch.save(self._model.state_dict(), path)
