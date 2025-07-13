@@ -14,10 +14,9 @@ dependencies = [
     "pyqt5 (>=5.15.11,<6.0.0)",
     "debugpy (>=1.8.14,<2.0.0)",
     "black (>=25.1.0,<26.0.0)",
-    "torch (>=2.9.0,<3.0.0)",
-    "torchvision (>=0.24.0,<0.25.0)",
     "tqdm (>=4.67.1,<5.0.0)",
-    "pandas (>=2.2.3,<3.0.0)"
+    "pandas (>=2.2.3,<3.0.0)",
+    "tensorboard (>=2.19.0,<3.0.0)"
 ]
 
 [build-system]
@@ -49,6 +48,4 @@ url = "https://pytorch-extension.intel.com/release-whl/stable/xpu/us/"
 priority = "supplemental"
 
 [tool.poetry.dependencies]
-torch = { url = "https://download.pytorch.org/whl/nightly/rocm6.4/torch-2.9.0.dev20250710%2Brocm6.4-cp313-cp313-manylinux_2_28_x86_64.whl", python=">=3.12,<3.14"}
-torchvision = { url = "https://download.pytorch.org/whl/nightly/rocm6.4/torchvision-0.24.0.dev20250711%2Brocm6.4-cp313-cp313-manylinux_2_28_x86_64.whl"}
 intel-extension-for-pytorch = { url = "https://pytorch-extension.intel.com/whl/intel_extension_for_pytorch-2.7.10+xpu-cp312-cp312-linux_x86_64.whl" }
