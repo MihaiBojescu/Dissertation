@@ -1115,6 +1115,18 @@ files = [
 ]
 
 [[package]]
+name = "standard-imghdr"
+version = "3.13.0"
+description = "Standard library imghdr redistribution. \"dead battery\"."
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "standard_imghdr-3.13.0-py3-none-any.whl", hash = "sha256:30a1bff5465605bb496f842a6ac3cc1f2131bf3025b0da28d4877d6d4b7cc8e9"},
+    {file = "standard_imghdr-3.13.0.tar.gz", hash = "sha256:8d9c68058d882f6fc3542a8d39ef9ff94d2187dc90bd0c851e0902776b7b7a42"},
+]
+
+[[package]]
 name = "tensorboard"
 version = "2.19.0"
 description = "TensorBoard lets you watch Tensors Flow"
@@ -1217,4 +1229,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.14"
-content-hash = "16b021741ef3c39f679874aa34b91e0f43f3b1e631aebc4ca1605b714a114f27"
+content-hash = "a7e415d4ac16acedf4dbc70db6ffafe9aba69b1d70540da8f979d265b43d7b66"
